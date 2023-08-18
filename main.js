@@ -1,33 +1,36 @@
-function Product(name, price) {
-  this.name = name;
-  this.price = price;
+function Product(n, p) {
+  // private properties
+  const name = n;
+  const price = p;
+
+  this.getProduct = function () {
+    return { name, price };
+  };
 }
 
 function ShoppingCart() {
-  this.items = [];
+  // private properties
+  let items = [];
 
   this.addItem = function (item) {
-    this.items.push(item);
+    items.push(item);
   };
 
   this.removeItem = function (item) {
-    const newArr = this.items.filter((x) => x.name !== item.name);
-    this.items = newArr;
+    const newArr = items.filter((x) => x.name !== item.name);
+    items = newArr;
   };
 
   this.getTotal = function () {
     let total = 0;
-    for (let i = 0; i < this.items.length; i++) {
-      total = this.items[i].price + total;
+    for (let i = 0; i < items.length; i++) {
+      total = items[i].price + total;
     }
     return total;
   };
 
   this.getCartItems = function () {
-    return this.items.map((item) => ({
-      name: item.name,
-      price: item.price,
-    }));
+    return items;
   };
 }
 
@@ -35,16 +38,21 @@ const product1 = new Product('benz', 20);
 const product2 = new Product('toyota', 40);
 const product3 = new Product('lexus', 30);
 
-const shoppingCart = new ShoppingCart();
+// console.log(product1.hasOwnProperty('getProduct'));
 
-shoppingCart.addItem(product1);
-shoppingCart.addItem(product2);
-shoppingCart.addItem(product3);
+const cart = new ShoppingCart();
 
-console.log(shoppingCart.getCartItems());
+cart.addItem(product1.getProduct());
+cart.addItem(product2.getProduct());
+cart.addItem(product3.getProduct());
 
-console.log(shoppingCart.getTotal());
+// console.log(cart.hasOwnProperty('name'));
+// console.log('items' in cart);
 
-shoppingCart.removeItem(product2);
+console.log(cart.getCartItems());
 
-console.log(shoppingCart.getCartItems());
+console.log(cart.getTotal());
+
+cart.removeItem(product2.getProduct());
+
+console.log(cart.getCartItems());
