@@ -1,58 +1,62 @@
-function Product(n, p) {
-  // private properties
-  const name = n;
-  const price = p;
+// 1. create a `Book` constructor function
+function Book(title, author, genre) {
+  this.title = title;
+  this.author = author;
+  this.genre = genre;
+}
+Book.prototype.getBook = function () {
+  return { title: this.title, author: this.author, genre: this.genre };
+};
 
-  this.getProduct = function () {
-    return { name, price };
-  };
+//2. create a `LibraryCatalog` constructor function
+function LibraryCatalog() {
+  this.books = [];
 }
 
-function ShoppingCart() {
-  // private properties
-  let items = [];
+// 3a. `addBook`: add a book to the catalog
+LibraryCatalog.prototype.addBook = function (book) {
+  this.books.push(book);
+};
 
-  this.addItem = function (item) {
-    items.push(item);
-  };
+// 3d. `getBooksByAuthor`: return books given an author name as an argument
+LibraryCatalog.prototype.getBooksByAuthor = function (author) {
+  const books = this.books.filter((book) => book.author === author);
+  return books;
+};
 
-  this.removeItem = function (item) {
-    const newArr = items.filter((x) => x.name !== item.name);
-    items = newArr;
-  };
+//3c. `Symbol.iterator`: returns the same generator function
+LibraryCatalog.prototype.bookIterator = function* () {
+  let index = 0;
+  while (index < this.books.length) {
+    yield this.books[index++];
+  }
+};
 
-  this.getTotal = function () {
-    let total = 0;
-    for (let i = 0; i < items.length; i++) {
-      total = items[i].price + total;
-    }
-    return total;
-  };
+// 3b. `bookIterator`: a generator function
+LibraryCatalog.prototype[Symbol.iterator] = function () {
+  return this.bookIterator();
+};
 
-  this.getCartItems = function () {
-    return items;
-  };
+const book1 = new Book('title1', 'author1', 'genre1');
+const book2 = new Book('title2', 'author2', 'genre2');
+const book3 = new Book('title3', 'author3', 'genre3');
+
+const libraryCatalog = new LibraryCatalog();
+
+// Add a book
+libraryCatalog.addBook(book1.getBook());
+libraryCatalog.addBook(book2.getBook());
+libraryCatalog.addBook(book3.getBook());
+
+// get all books in the library catalog
+console.log(libraryCatalog.books);
+
+// get all books in the library catalog using the author
+console.log(libraryCatalog.getBooksByAuthor('author1'));
+
+for (const books of libraryCatalog.bookIterator()) {
+  console.log(books);
 }
-
-const product1 = new Product('benz', 20);
-const product2 = new Product('toyota', 40);
-const product3 = new Product('lexus', 30);
-
-// console.log(product1.hasOwnProperty('getProduct'));
-
-const cart = new ShoppingCart();
-
-cart.addItem(product1.getProduct());
-cart.addItem(product2.getProduct());
-cart.addItem(product3.getProduct());
-
-// console.log(cart.hasOwnProperty('name'));
-// console.log('items' in cart);
-
-console.log(cart.getCartItems());
-
-console.log(cart.getTotal());
-
-cart.removeItem(product2.getProduct());
-
-console.log(cart.getCartItems());
+for (const books of libraryCatalog) {
+  console.log(books);
+}
