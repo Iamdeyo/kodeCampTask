@@ -1,62 +1,71 @@
-// 1. create a `Book` constructor function
-function Book(title, author, genre) {
-  this.title = title;
-  this.author = author;
-  this.genre = genre;
-}
-Book.prototype.getBook = function () {
-  return { title: this.title, author: this.author, genre: this.genre };
-};
+const async = require('async');
 
-//2. create a `LibraryCatalog` constructor function
-function LibraryCatalog() {
-  this.books = [];
-}
+// 2.
+const numbers = [1, 3, 5, 6, 3];
 
-// 3a. `addBook`: add a book to the catalog
-LibraryCatalog.prototype.addBook = function (book) {
-  this.books.push(book);
-};
-
-// 3d. `getBooksByAuthor`: return books given an author name as an argument
-LibraryCatalog.prototype.getBooksByAuthor = function (author) {
-  const books = this.books.filter((book) => book.author === author);
-  return books;
-};
-
-//3c. `Symbol.iterator`: returns the same generator function
-LibraryCatalog.prototype.bookIterator = function* () {
-  let index = 0;
-  while (index < this.books.length) {
-    yield this.books[index++];
+async.mapSeries(
+  numbers,
+  function (number, cb) {
+    setTimeout(() => {
+      cb(null, number * 2);
+    }, 1000);
+  },
+  function (err, results) {
+    console.log(err, results);
   }
-};
+);
 
-// 3b. `bookIterator`: a generator function
-LibraryCatalog.prototype[Symbol.iterator] = function () {
-  return this.bookIterator();
-};
+// 3
+const fs = require('fs');
+const path = require('path');
+const { pipeline } = require('stream');
 
-const book1 = new Book('title1', 'author1', 'genre1');
-const book2 = new Book('title2', 'author2', 'genre2');
-const book3 = new Book('title3', 'author3', 'genre3');
+// Define source and destination directories
+const sourceDir = path.join(__dirname, 'File-Backup/main');
+const destinationDir = path.join(__dirname, 'File-Backup/destination');
 
-const libraryCatalog = new LibraryCatalog();
+// Function to recursively copy files and files and folders
+function FileBackup(source, destination) {
+  const items = fs.readdirSync(source);
 
-// Add a book
-libraryCatalog.addBook(book1.getBook());
-libraryCatalog.addBook(book2.getBook());
-libraryCatalog.addBook(book3.getBook());
+  for (const item of items) {
+    const sourcePath = path.join(source, item);
+    const destPath = path.join(destination, item);
 
-// get all books in the library catalog
-console.log(libraryCatalog.books);
+    // Check if the item is a folder
+    const isDirectory = fs.statSync(sourcePath).isDirectory();
 
-// get all books in the library catalog using the author
-console.log(libraryCatalog.getBooksByAuthor('author1'));
+    if (isDirectory) {
+      // Create the destination folder if it doesn't exist
+      if (!fs.existsSync(destPath)) {
+        fs.mkdirSync(destPath);
+      }
 
-for (const books of libraryCatalog.bookIterator()) {
-  console.log(books);
+      FileBackup(sourcePath, destPath);
+    } else {
+      // Copy the file using streams
+      const readStream = fs.createReadStream(sourcePath);
+      const writeStream = fs.createWriteStream(destPath);
+
+      pipeline(readStream, writeStream, (err) => {
+        if (err) {
+          console.error('Error: ' + err);
+        } else {
+          console.log('Backup succeeded');
+        }
+      });
+    }
+  }
 }
-for (const books of libraryCatalog) {
-  console.log(books);
-}
+
+// Perform the backup
+FileBackup(sourceDir, destinationDir);
+
+/*
+1 Reactor Pattern is used to avoid the blocking I/O and multthreading issues. it comprises of Event demultiplexer, event loop, event queue and the application.
+
+2. Callback pattern is used to achieve asynchronous behaviour.  Once the async operation is finished the callback function is triggered.
+
+3. The module pattern is used to organize, structure code and help to privatize you code.
+
+*/
