@@ -1,71 +1,40 @@
-const async = require('async');
+const { EventEmitter } = require('events');
 
-// 2.
-const numbers = [1, 3, 5, 6, 3];
-
-async.mapSeries(
-  numbers,
-  function (number, cb) {
-    setTimeout(() => {
-      cb(null, number * 2);
-    }, 1000);
-  },
-  function (err, results) {
-    console.log(err, results);
+class MyeventLogger extends EventEmitter {
+  #totalEvents = []; //private variable
+  constructor() {
+    super();
   }
-);
 
-// 3
-const fs = require('fs');
-const path = require('path');
-const { pipeline } = require('stream');
+  // 1. Event logging
+  logger(title, desc) {
+    const timestamp = new Date().toLocaleString();
+    const event = { title, desc, timestamp };
+    this.#totalEvents.push(event);
+    this.emit('logger', event);
+  }
 
-// Define source and destination directories
-const sourceDir = path.join(__dirname, 'File-Backup/main');
-const destinationDir = path.join(__dirname, 'File-Backup/destination');
+  //  3. Display list of events
+  displayEvents() {
+    console.log('| event index. | event title | event timestamp     | ');
 
-// Function to recursively copy files and files and folders
-function FileBackup(source, destination) {
-  const items = fs.readdirSync(source);
-
-  for (const item of items) {
-    const sourcePath = path.join(source, item);
-    const destPath = path.join(destination, item);
-
-    // Check if the item is a folder
-    const isDirectory = fs.statSync(sourcePath).isDirectory();
-
-    if (isDirectory) {
-      // Create the destination folder if it doesn't exist
-      if (!fs.existsSync(destPath)) {
-        fs.mkdirSync(destPath);
-      }
-
-      FileBackup(sourcePath, destPath);
-    } else {
-      // Copy the file using streams
-      const readStream = fs.createReadStream(sourcePath);
-      const writeStream = fs.createWriteStream(destPath);
-
-      pipeline(readStream, writeStream, (err) => {
-        if (err) {
-          console.error('Error: ' + err);
-        } else {
-          console.log('Backup succeeded');
-        }
-      });
-    }
+    this.#totalEvents.forEach((event, index) => {
+      console.log(
+        `| ${index}            | ${event.title}      | ${event.timestamp}| `
+      );
+    });
   }
 }
 
-// Perform the backup
-FileBackup(sourceDir, destinationDir);
+const myEventLogger = new MyeventLogger();
 
-/*
-1 Reactor Pattern is used to avoid the blocking I/O and multthreading issues. it comprises of Event demultiplexer, event loop, event queue and the application.
+// 2.  Event listener
+myEventLogger.on('logger', (event) => {
+  console.log(`Listening for events: ${event.title}`);
+});
 
-2. Callback pattern is used to achieve asynchronous behaviour.  Once the async operation is finished the callback function is triggered.
+myEventLogger.logger('Title1', 'Description1');
+myEventLogger.logger('Title2', 'Description2');
+myEventLogger.logger('Title3', 'Description3');
 
-3. The module pattern is used to organize, structure code and help to privatize you code.
-
-*/
+myEventLogger.displayEvents();
